@@ -29,7 +29,7 @@ func main() {
 
 	if file == nil {
 		log.Println("Sorry, no input was provided")
-		return
+		os.Exit(1)
 	}
 
 	// Parse JSON
@@ -37,7 +37,7 @@ func main() {
 	err := json.Unmarshal(*file, &data)
 	if err != nil {
 		log.Println("Error when parsing JSON", err)
-		return
+		os.Exit(1)
 	}
 	parseJSON(data, "")
 
