@@ -122,6 +122,7 @@ func parseJSON(data map[string]interface{}, prefix string) {
 			// Some additional processing
 			stringValue = escapeApostrophes(stringValue)
 			stringValue = escapeNewlines(stringValue)
+			stringValue = escapeAmpersand(stringValue)
 			stringValue = removeExtraParenthesis(stringValue)
 			stringValue = replaceEllipsis(stringValue)
 
@@ -141,6 +142,11 @@ func escapeApostrophes(stringValue string) string {
 // Convert all newlines to escaped newlines
 func escapeNewlines(stringValue string) string {
 	return strings.ReplaceAll(stringValue, "\n", "\\n")
+}
+
+// Replace ampersands with appropriate symbols
+func escapeAmpersand(stringValue string) string {
+	return strings.ReplaceAll(stringValue, "&", "&amp;")
 }
 
 // Convert variables {{variable}} to just {variable}
