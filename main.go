@@ -121,7 +121,7 @@ func decalreFlags() (localFilesFlags flagsArray, remoteFilesFlags flagsArray, gi
 	flag.Var(&remoteFilesFlags, "remote", "Remote i18next file url.")
 	gitlabAPITokenFlag = flag.String("gitlab", "", "Gitlab token to get remote i18next file via Gitlab Rest API.")
 	printToConsoleFlag = flag.Bool("console", false, "If set, print output to console.")
-	flag.Var(&outputModifiers, "write", "Android resource modifier that specifies values-XXX folder. Can be empty \"\". If not set, output won't be written to a file.")
+	flag.Var(&outputModifiers, "write", "Android resource qualifier that specifies values-XXX folder. Can be empty \"\". If not set, output won't be written to a file.")
 
 	flag.Parse()
 
