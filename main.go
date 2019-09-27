@@ -1,3 +1,5 @@
+// Created by Alexander Mishchenko in 2019
+
 package main
 
 import (
@@ -12,23 +14,65 @@ import (
 	"strings"
 )
 
-var stringsMap = make(map[string]string)
+type flagsArray []string
+
+var stringsMap map[string]string
 var parenthesisRegexp = regexp.MustCompile(`{{(\w+)}}`)
 
 func main() {
-	localFileFlag, remoteFileFlag, gitlabAPITokenFlag, printToConsoleFlag, printToFileFlag := decalreFlags()
-	var file *[]byte
+	localFilesFlags, remoteFilesFlags, gitlabAPITokenFlag, printToConsoleFlag, outputModifiers := decalreFlags()
 
-	if *localFileFlag != "" {
-		file = getLocalFile(*localFileFlag)
-	} else if *remoteFileFlag != "" && *gitlabAPITokenFlag != "" {
-		file = downloadFileViaGitlab(*remoteFileFlag, *gitlabAPITokenFlag)
-	} else if *remoteFileFlag != "" {
-		file = downloadFile(*remoteFileFlag)
+	if len(localFilesFlags) > 0 {
+		for index, localFileFlag := range localFilesFlags {
+			file := getLocalFile(localFileFlag)
+			var outputModifier *string
+
+			if len(outputModifiers) < index + 1 {
+				outputModifier = nil
+			} else {
+				outputModifier = &outputModifiers[index]
+			}
+
+			convertFile(file, printToConsoleFlag, outputModifier)
+		}
+	} else if len(remoteFilesFlags) > 0 && *gitlabAPITokenFlag != "" {
+		for index, remoteFileFlag := range remoteFilesFlags {
+			file := downloadFileViaGitlab(remoteFileFlag, *gitlabAPITokenFlag)
+			var outputModifier *string
+
+			if len(outputModifiers) < index + 1 {
+				outputModifier = nil
+			} else {
+				outputModifier = &outputModifiers[index]
+			}
+
+			convertFile(file, printToConsoleFlag, outputModifier)
+		}
+	} else if len(remoteFilesFlags) > 0 {
+		for index, remoteFileFlag := range remoteFilesFlags {
+			file := downloadFile(remoteFileFlag)
+			var outputModifier *string
+
+			if len(outputModifiers) < index + 1 {
+				outputModifier = nil
+			} else {
+				outputModifier = &outputModifiers[index]
+			}
+
+			convertFile(file, printToConsoleFlag, outputModifier)
+		}
+	} else {
+		log.Println("Sorry, no input was provided")
+		os.Exit(1)
 	}
+}
+
+// Do actual work of converting i18next file to Android strings XML
+func convertFile(file *[]byte, printToConsoleFlag *bool, outputModifier *string) {
+	stringsMap = make(map[string]string)
 
 	if file == nil {
-		log.Println("Sorry, no input was provided")
+		log.Println("Sorry, file cannot be read")
 		os.Exit(1)
 	}
 
@@ -57,23 +101,50 @@ func main() {
 	}
 
 	// Print to file
-	if *printToFileFlag {
+	if outputModifier != nil {
 		outputBytes := []byte(*output)
-		printToFile(&outputBytes, "src/main/res/values", "strings.xml")
+
+		var valuesFolderName string
+		if *outputModifier == "" {
+			valuesFolderName = "values"
+		} else {
+			valuesFolderName = "values-" + *outputModifier
+		}
+
+		printToFile(&outputBytes, "src/main/res/" + valuesFolderName, "strings.xml")
 	}
 }
 
 // Declare flags and get their values
-func decalreFlags() (localFileFlag *string, remoteFileFlag *string, gitlabAPITokenFlag *string, printToConsoleFlag *bool, printToFileFlag *bool) {
-	localFileFlag = flag.String("local", "", "Local i18next file absolute address")
-	remoteFileFlag = flag.String("remote", "", "Remote i18next file url")
-	gitlabAPITokenFlag = flag.String("gitlab", "", "Gitlab token to get remote i18next file via Gitlab API")
-	printToConsoleFlag = flag.Bool("console", false, "If set, print output to console")
-	printToFileFlag = flag.Bool("write", true, "If set, print output to strings.xml")
+func decalreFlags() (localFilesFlags flagsArray, remoteFilesFlags flagsArray, gitlabAPITokenFlag *string, printToConsoleFlag *bool, outputModifiers flagsArray) {
+	flag.Var(&localFilesFlags, "local", "Local i18next file absolute address.")
+	flag.Var(&remoteFilesFlags, "remote", "Remote i18next file url.")
+	gitlabAPITokenFlag = flag.String("gitlab", "", "Gitlab token to get remote i18next file via Gitlab Rest API.")
+	printToConsoleFlag = flag.Bool("console", false, "If set, print output to console.")
+	flag.Var(&outputModifiers, "write", "Android resource modifier that specifies values-XXX folder. Can be empty \"\". If not set, output won't be written to a file.")
 
 	flag.Parse()
 
 	return
+}
+
+// Add a new flag to the array
+func (flags *flagsArray) Set(value string) error {
+  *flags = append(*flags, value)
+	return nil
+}
+
+// String representation of the array
+func (flags *flagsArray) String() string {
+	result := ""
+  for index, flag := range *flags {
+		if index > 0 {
+			result += ","
+		}
+		result += flag
+	}
+
+	return result
 }
 
 // Print given bytes to console as string
