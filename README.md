@@ -9,10 +9,10 @@ plugins {
 }
 
 golang {
-    packagePath = 'github.com/alexal1/i18NextToAndroidConverter'
+    packagePath = '/'
 }
 ```
-Here we add [gogradle](https://github.com/gogradle/gogradle) plugin to the project (which compiles Go scripts) and import the _i18NextToAndroidConverter_ project.
+Here we add [gogradle](https://github.com/gogradle/gogradle) plugin to the project.
 
 2. Add the following lines to the same `build.gradle` file:
 ```gradle
