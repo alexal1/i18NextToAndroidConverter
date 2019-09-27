@@ -17,7 +17,7 @@ Here we add [gogradle](https://github.com/gogradle/gogradle) plugin to the proje
 2. Add the following lines to the same `build.gradle` file:
 ```gradle
 task runI18N(type: Go) {
-    go('run github.com/alexal1/i18NextToAndroidConverter -local="<local_file_address>"') {
+    go('run . -local="<local_file_address>"') {
         stderr { stderrLine ->
             println stderrLine
         }
@@ -26,7 +26,7 @@ task runI18N(type: Go) {
 
 preBuild.dependsOn(runI18N)
 ```
-Here we create `runI18N` Gradle task. Note that in the line `go('run ...')` you should add flags according to your needs. All available flags are listed below.
+Here we create `runI18N` Gradle task. Note that in the line `go('run .')` you should add flags according to your needs. All available flags are listed below.
 * `-local="<local_file_address>"` local i18next file absolute address
 * `-remote="<url>"` remote i18next file url
 * `-gitlab="<access_token>"` Gitlab token to get remote i18next file via Gitlab API
@@ -35,9 +35,4 @@ Here we create `runI18N` Gradle task. Note that in the line `go('run ...')` you 
 
 3. Download [main.go](https://raw.githubusercontent.com/alexal1/i18NextToAndroidConverter/master/main.go) and put it into your app folder.
 
-4. Add the following line to your app level `.gitignore`:
-```
-/.gogradle
-```
-
-5. Build your project.
+4. Build your project.
